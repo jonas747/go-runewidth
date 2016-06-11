@@ -227,3 +227,28 @@ func TestFillRightFit(t *testing.T) {
 		t.Errorf("FillRight(%q) = %q, want %q", s, out, expected)
 	}
 }
+
+func BenchmarkRuneWidth(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		RuneWidth(rune(i % 0xffff))
+	}
+}
+
+func BenchmarkStringWidth(b *testing.B) {
+	// Some cases to trick cpu prediction
+	cases := []string{
+		"a̼͂ͥ̽͛ͪ́s͎͚ḑ̫̞̜̩̟͉̆͋ͩ̊̚a̛̲̫̼͖̱̯ͯ̐̽s͓̠̪̟͐ͧd̫̹̍̎͠",
+		"1̢͕̯͕̞2̼̮͉͎̤̠̿ͯͫ̋3̽̾͐ͯͤͣ2̼̣͕̬͑͂̍ͅ3̥̯̹̑͆1̡̥",
+		"g͒̈́̑͒ͭ̔ͫḣ̢̙̼͌j̩̩̞͖͝v̙͈̟̘̗̺͢s̾͐̂҉̰͎̞̥̟a̜͙̰̭̪̖̾ͣ͊̊̽̏ͅȧ̺̾̈́̓̌ͫ͝",
+		"1̂2̩͖̳̤̖͇͈̄ͣ͞3̥̙ͯͪͩ1̫̜͓̯͋̈́̊ͅ2͕̻̣̪͍̲̓͌̍̂ͭ͢3̦̞̦̯̣̖͐̍̉̍͐̇7͚͚̰͕̼̺͎̆̓̂̐̏̒",
+		"123!asd",
+		"hello my good old freind",
+		"thisi is a test string yahooo",
+		"h̵̩̼̗̝ͣě̢̼ỹͬͧ͆ͤo͈̘̼̱͈̘ͦͭͯ́̿ͧ͑͟o͖̙̟̘͗̇ͬ̊ͣ͜",
+		"f̸͉͕̖̼͚̼̭̂͊̽̾a҉̻̦͎̟a̛̓ͨͭ͌̈́̄a̦͔͓̅̑ͦ̔ͮ̉͛a̫̒̽̓̃a̺̳̰͚̙̤̫͗̄̾ͤ",
+	}
+	b.Log(DefaultCondition.EastAsianWidth)
+	for i := 0; i < b.N; i++ {
+		StringWidth(cases[i%6])
+	}
+}

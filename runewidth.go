@@ -8,7 +8,7 @@ type interval struct {
 	last  rune
 }
 
-var combining = []interval{
+var combining = []*interval{
 	{0x0300, 0x036F}, {0x0483, 0x0486}, {0x0488, 0x0489},
 	{0x0591, 0x05BD}, {0x05BF, 0x05BF}, {0x05C1, 0x05C2},
 	{0x05C4, 0x05C5}, {0x05C7, 0x05C7}, {0x0600, 0x0603},
@@ -76,7 +76,7 @@ type intervalType struct {
 	ctype ctype
 }
 
-var ctypes = []intervalType{
+var ctypes = []*intervalType{
 	{0x0020, 0x007E, narrow},
 	{0x00A1, 0x00A1, ambiguous},
 	{0x00A2, 0x00A3, narrow},
@@ -302,6 +302,18 @@ var ctypes = []intervalType{
 	{0x100000, 0x10FFFE, ambiguous},
 }
 
+var CombiningTable map[rune]bool
+
+func init() {
+	// Generate the combining table from the combining slice
+	CombiningTable = make(map[rune]bool)
+	for _, comb := range combining {
+		for i := comb.first; i <= comb.last; i++ {
+			CombiningTable[rune(i)] = true
+		}
+	}
+}
+
 type Condition struct {
 	EastAsianWidth bool
 }
@@ -319,10 +331,9 @@ func (c *Condition) RuneWidth(r rune) int {
 	if r < 32 || (r >= 0x7f && r < 0xa0) {
 		return 1
 	}
-	for _, iv := range combining {
-		if iv.first <= r && r <= iv.last {
-			return 0
-		}
+
+	if _, ok := CombiningTable[r]; ok {
+		return 0
 	}
 
 	if c.EastAsianWidth && IsAmbiguousWidth(r) {
@@ -345,7 +356,7 @@ func (c *Condition) RuneWidth(r rune) int {
 }
 
 func (c *Condition) StringWidth(s string) (width int) {
-	for _, r := range []rune(s) {
+	for _, r := range s {
 		width += c.RuneWidth(r)
 	}
 	return width
